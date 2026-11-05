@@ -17,7 +17,7 @@ Wishly is configured for modern, free cloud deployment:
    * **Name**: `wishly-api`
    * **Root Directory**: `backend`
    * **Runtime**: `Node`
-   * **Build Command**: `npm ci && npm run build`
+   * **Build Command**: `npm install && npm run build`
    * **Start Command**: `npm run start`
    * **Instance Type**: `Free`
 5. Click **Advanced** → **Add Environment Variable** and add:
