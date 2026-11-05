@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { usersApi, authApi } from '../services/api';
+import { usersApi, authApi, API_ORIGIN } from '../services/api';
 
 export function useAuth() {
   const { user, isAuthenticated, isLoading, setUser, setAccessToken, logout } = useAuthStore();
@@ -21,7 +21,7 @@ export function useAuth() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const signInWithGoogle = () => {
-    window.location.href = '/api/v1/auth/google';
+    window.location.href = `${API_ORIGIN}/api/v1/auth/google`;
   };
 
   const signOut = async () => {

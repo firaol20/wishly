@@ -7,7 +7,7 @@ import {
   Download, Loader2, MessageSquareDashed,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { wishlistsApi, itemsApi } from '../services/api';
+import { wishlistsApi, itemsApi, API_ORIGIN } from '../services/api';
 import type { Wishlist, WishItem, Status, Category } from '../types';
 import { WishCard } from '../components/wishes/WishCard';
 import { WishForm } from '../components/wishes/WishForm';
@@ -115,7 +115,7 @@ export function WishlistDetail() {
               {copied ? <Check size={14} /> : <Share2 size={14} />}
               {copied ? 'Copied!' : 'Share'}
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => window.open(`/api/v1/wishlists/${id}/export/pdf`, '_blank')}>
+            <Button variant="secondary" size="sm" onClick={() => window.open(`${API_ORIGIN}/api/v1/wishlists/${id}/export/pdf`, '_blank')}>
               <Download size={14} />
               PDF
             </Button>

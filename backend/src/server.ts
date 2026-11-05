@@ -26,9 +26,27 @@ async function buildApp() {
     contentSecurityPolicy: false, // handled by frontend
   });
 
-  // CORS
+  // CORS — Supports local dev, custom production domains, and preview deploys
   await app.register(fastifyCors, {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true);
+
+      const configuredOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173,http://localhost:5174')
+        .split(',')
+        .map((u) => u.trim().replace(/\/$/, ''));
+
+      const isAllowed =
+        configuredOrigins.includes(origin) ||
+        origin.startsWith('http://localhost:') ||
+        origin.startsWith('http://127.0.0.1:') ||
+        origin.endsWith('.vercel.app');
+
+      if (isAllowed) {
+        cb(null, true);
+      } else {
+        cb(null, false);
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   });
@@ -44,9 +62,9 @@ async function buildApp() {
     timeWindow: '1 minute',
   });
 
-  // Multipart (file uploads)
+  // Multipart (file uploads — up to 10MB)
   await app.register(fastifyMultipart, {
-    limits: { fileSize: 5 * 1024 * 1024 },
+    limits: { fileSize: 10 * 1024 * 1024 },
   });
 
   // Health check
@@ -82,6 +100,16 @@ async function start() {
 
     // Start reminder cron job
     setupReminderCron();
+
+    // Graceful shutdown
+    const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM'];
+    for (const signal of signals) {
+      process.on(signal, async () => {
+        console.log(`\nReceived ${signal}, shutting down gracefully...`);
+        await server.close();
+        process.exit(0);
+      });
+    }
   } catch (err) {
     console.error('Failed to start server:', err);
     process.exit(1);
