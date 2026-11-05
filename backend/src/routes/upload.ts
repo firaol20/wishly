@@ -1,28 +1,25 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate } from '../middleware/auth';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { v4 as uuidv4 } from 'uuid';
+import { v2 as cloudinary } from 'cloudinary';
 
-function getS3Client() {
-  return new S3Client({
-    region: 'auto',
-    endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-    },
-  });
-}
+// Configure Cloudinary from environment variables
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'xqyzgifj',
+  api_key: process.env.CLOUDINARY_API_KEY || '893313511673197',
+  api_secret: process.env.CLOUDINARY_API_SECRET || '15l7DU3YVxSGJ-FlnIB5pBKgqHA',
+  secure: true,
+});
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function uploadRoutes(app: FastifyInstance) {
   app.post('/', { preHandler: [authenticate] }, async (request, reply) => {
     const user = (request as any).user;
 
-    if (!process.env.R2_ACCOUNT_ID) {
-      return reply.status(503).send({ error: 'File upload not configured' });
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'xqyzgifj';
+    if (!cloudName) {
+      return reply.status(503).send({ error: 'Cloudinary storage not configured' });
     }
 
     try {
@@ -40,26 +37,30 @@ export async function uploadRoutes(app: FastifyInstance) {
       const buffer = Buffer.concat(chunks);
 
       if (buffer.length > MAX_SIZE) {
-        return reply.status(400).send({ error: 'File too large. Max 5MB.' });
+        return reply.status(400).send({ error: 'File too large. Max 10MB.' });
       }
 
-      const ext = data.mimetype.split('/')[1];
-      const key = `${user.id}/${uuidv4()}.${ext}`;
+      // Upload buffer directly to Cloudinary
+      const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: `wishly/${user.id}`,
+            resource_type: 'image',
+          },
+          (error, result) => {
+            if (error || !result) {
+              reject(error || new Error('Upload failed without result'));
+            } else {
+              resolve(result);
+            }
+          }
+        );
+        uploadStream.end(buffer);
+      });
 
-      const s3 = getS3Client();
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: process.env.R2_BUCKET_NAME || 'wishly-uploads',
-          Key: key,
-          Body: buffer,
-          ContentType: data.mimetype,
-        })
-      );
-
-      const publicUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
-      return reply.send({ url: publicUrl });
+      return reply.send({ url: uploadResult.secure_url });
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Cloudinary upload error:', error);
       return reply.status(500).send({ error: 'Upload failed' });
     }
   });
