@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #FFFBF0;
+  --color-cream-dark: #FFF3D4;
+  --color-amber-warm: #F59E0B;
+  --color-amber-light: #FDE68A;
+  --color-amber-deep: #D97706;
+  --color-rose-soft: #FCA5A5;
+  --color-sage: #86EFAC;
+  --color-sky-soft: #BAE6FD;
+  --color-purple-soft: #DDD6FE;
+  --color-warm-gray: #78716C;
+  --color-warm-gray-light: #A8A29E;
+
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Lato", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-cream);
+  color: #292524;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D6CCC2;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A8A29E;
+}
+
+/* Smooth transitions */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+}
+
+/* Status colors */
+.status-dream { background: #DBEAFE; color: #1D4ED8; }
+.status-in-progress { background: #FEF3C7; color: #D97706; }
+.status-lived-it { background: #DCFCE7; color: #16A34A; }
+
+/* Category colors */
+.cat-TRAVEL { background: #BAE6FD; color: #0369A1; }
+.cat-HEALTH { background: #DCFCE7; color: #15803D; }
+.cat-CAREER { background: #E0E7FF; color: #4338CA; }
+.cat-FAMILY { background: #FCE7F3; color: #BE185D; }
+.cat-EDUCATION { background: #FEF3C7; color: #B45309; }
+.cat-FUN { background: #FECDD3; color: #BE123C; }
+.cat-OTHER { background: #F3F4F6; color: #374151; }
