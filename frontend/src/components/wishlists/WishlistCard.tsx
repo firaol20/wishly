@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookHeart, Lock, Link2, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { BookHeart, Lock, Link2, Globe, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { Wishlist } from '../../types';
 import { cn } from '../../utils/cn';
@@ -40,13 +40,29 @@ export function WishlistCard({ wishlist, onEdit, onDelete, index }: WishlistCard
 
           {/* Visibility badge */}
           <div className={cn(
-            'absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm',
-            wishlist.visibility === 'LINK'
-              ? 'bg-blue-100/90 text-blue-700'
-              : 'bg-white/80 text-stone-500'
+            'absolute top-2 left-2 flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm shadow-xs',
+            wishlist.visibility === 'PUBLIC'
+              ? 'bg-emerald-100/90 text-emerald-800 border border-emerald-200/50'
+              : wishlist.visibility === 'LINK'
+              ? 'bg-blue-100/90 text-blue-700 border border-blue-200/50'
+              : 'bg-white/85 text-stone-600 border border-stone-200/50'
           )}>
-            {wishlist.visibility === 'LINK' ? <Link2 size={10} /> : <Lock size={10} />}
-            {wishlist.visibility === 'LINK' ? 'Shared' : 'Private'}
+            {wishlist.visibility === 'PUBLIC' ? (
+              <>
+                <Globe size={11} className="text-emerald-700" />
+                <span>Public</span>
+              </>
+            ) : wishlist.visibility === 'LINK' ? (
+              <>
+                <Link2 size={11} className="text-blue-600" />
+                <span>Shared</span>
+              </>
+            ) : (
+              <>
+                <Lock size={11} className="text-stone-500" />
+                <span>Private</span>
+              </>
+            )}
           </div>
         </div>
       </Link>
@@ -63,8 +79,8 @@ export function WishlistCard({ wishlist, onEdit, onDelete, index }: WishlistCard
             {wishlist.description && (
               <p className="text-xs text-stone-400 mt-0.5 line-clamp-1">{wishlist.description}</p>
             )}
-            <p className="text-xs text-stone-400 mt-1.5">
-              {wishlist._count?.items ?? 0} {wishlist._count?.items === 1 ? 'wish' : 'wishes'}
+            <p className="text-xs text-stone-500 font-medium mt-1.5">
+              {wishlist._count?.items ?? 0} {wishlist._count?.items === 1 ? 'dream' : 'dreams'}
             </p>
           </div>
 

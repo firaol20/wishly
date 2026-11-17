@@ -78,7 +78,7 @@ export const authApi = {
 // Users
 export const usersApi = {
   getMe: () => api.get('/users/me'),
-  updateMe: (data: { name?: string; bio?: string }) => api.patch('/users/me', data),
+  updateMe: (data: { name?: string; bio?: string; telegramUsername?: string | null }) => api.patch('/users/me', data),
   exportData: () => api.get('/users/me/export', { responseType: 'blob' }),
   deleteAccount: () => api.delete('/users/me'),
 };
@@ -86,7 +86,7 @@ export const usersApi = {
 // Wishlists
 export const wishlistsApi = {
   list: () => api.get('/wishlists'),
-  create: (data: { title: string; description?: string; coverImageUrl?: string }) =>
+  create: (data: { title: string; description?: string; coverImageUrl?: string; visibility?: string }) =>
     api.post('/wishlists', data),
   get: (id: string) => api.get(`/wishlists/${id}`),
   update: (id: string, data: Partial<{ title: string; description: string; coverImageUrl: string; visibility: string }>) =>
@@ -94,6 +94,9 @@ export const wishlistsApi = {
   delete: (id: string) => api.delete(`/wishlists/${id}`),
   reorder: (items: { id: string; sortOrder: number }[]) => api.patch('/wishlists/reorder', { items }),
   getShared: (token: string) => api.get(`/wishlists/share/${token}`),
+  getPublic: (params?: { search?: string; page?: number; limit?: number }) =>
+    api.get('/wishlists/public', { params }),
+  getPublicById: (id: string) => api.get(`/wishlists/public/${id}`),
 };
 
 // Wish Items
@@ -108,6 +111,8 @@ export const itemsApi = {
   addMemory: (id: string, data: { memoryNote: string; memoryImageUrl?: string }) =>
     api.post(`/items/${id}/memory`, data),
   reorder: (items: { id: string; sortOrder: number }[]) => api.patch('/items/reorder', { items }),
+  getPublicDreams: (params?: { category?: string; search?: string; page?: number; limit?: number }) =>
+    api.get('/items/public/dreams', { params }),
 };
 
 // AI

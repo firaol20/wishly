@@ -232,7 +232,7 @@ export function Dashboard() {
           to="/wishlists"
           className="inline-flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 font-medium hover:underline"
         >
-          View all my wishlists →
+          View "I wish" collections →
         </Link>
       </motion.div>
     </div>

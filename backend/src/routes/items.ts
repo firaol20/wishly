@@ -34,6 +34,53 @@ async function verifyWishlistOwnership(wishlistId: string, userId: string) {
 }
 
 export async function itemRoutes(app: FastifyInstance) {
+  // Public dreams stream across all public wishlists (no auth required)
+  app.get('/public/dreams', async (request, reply) => {
+    const { category, search, limit = '40', page = '1' } = request.query as Record<string, string>;
+    const take = Math.min(parseInt(limit, 10) || 40, 60);
+    const skip = ((parseInt(page, 10) || 1) - 1) * take;
+
+    const where: any = {
+      wishlist: { visibility: 'PUBLIC' },
+      ...(category && { category: category as any }),
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { whyIWantThis: { contains: search, mode: 'insensitive' } },
+          { tags: { has: search.toLowerCase() } },
+        ],
+      }),
+    };
+
+    const [total, items] = await Promise.all([
+      prisma.wishItem.count({ where }),
+      prisma.wishItem.findMany({
+        where,
+        include: {
+          wishlist: {
+            select: {
+              id: true,
+              title: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                  telegramUsername: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take,
+        skip,
+      }),
+    ]);
+
+    return reply.send({ total, items, page: parseInt(page, 10) || 1, limit: take });
+  });
+
   // List items in a wishlist (with filters)
   app.get('/wishlists/:wishlistId/items', { preHandler: [authenticate] }, async (request, reply) => {
     const user = (request as any).user;

@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Lock, Link2 } from 'lucide-react';
+import { Lock, Link2, Globe } from 'lucide-react';
 import { wishlistsApi } from '../../services/api';
 import type { Wishlist } from '../../types';
 import { Input } from '../ui/Input';
@@ -17,7 +17,7 @@ const schema = z.object({
   title: z.string().min(1, 'Title is required').max(100),
   description: z.string().max(500).optional(),
   coverImageUrl: z.string().optional(),
-  visibility: z.enum(['PRIVATE', 'LINK']).optional(),
+  visibility: z.enum(['PRIVATE', 'LINK', 'PUBLIC']).optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -54,10 +54,11 @@ export function WishlistForm({ open, onClose, editing }: WishlistFormProps) {
     mutationFn: (data: FormData) => wishlistsApi.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['wishlists'] });
-      toast.success('Wishlist created');
+      qc.invalidateQueries({ queryKey: ['stats'] });
+      toast.success('Dream collection created');
       onClose();
     },
-    onError: () => toast.error('Failed to create wishlist'),
+    onError: () => toast.error('Failed to create collection'),
   });
 
   const updateMutation = useMutation({
@@ -65,10 +66,11 @@ export function WishlistForm({ open, onClose, editing }: WishlistFormProps) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['wishlists'] });
       qc.invalidateQueries({ queryKey: ['wishlist', editing!.id] });
-      toast.success('Wishlist updated');
+      qc.invalidateQueries({ queryKey: ['stats'] });
+      toast.success('Dream collection updated');
       onClose();
     },
-    onError: () => toast.error('Failed to update wishlist'),
+    onError: () => toast.error('Failed to update collection'),
   });
 
   const onSubmit = (data: FormData) => {
@@ -81,7 +83,7 @@ export function WishlistForm({ open, onClose, editing }: WishlistFormProps) {
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? 'Edit Wishlist' : 'New Wishlist'}>
+    <Modal open={open} onClose={onClose} title={isEdit ? 'Edit Dream Collection' : 'New Dream Collection'}>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <Input
           label="Title"
@@ -104,20 +106,24 @@ export function WishlistForm({ open, onClose, editing }: WishlistFormProps) {
         {/* Visibility toggle */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-stone-700">Visibility</label>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {([
-              { value: 'PRIVATE', label: 'Private', Icon: Lock },
-              { value: 'LINK',    label: 'Shared link', Icon: Link2 },
-            ] as const).map(({ value, label, Icon }) => (
-              <label key={value} className="flex-1 cursor-pointer">
+              { value: 'PRIVATE', label: 'Private', desc: 'Only you', Icon: Lock },
+              { value: 'LINK',    label: 'Shared link', desc: 'Anyone with link', Icon: Link2 },
+              { value: 'PUBLIC',  label: 'Public', desc: 'Discover feed', Icon: Globe },
+            ] as const).map(({ value, label, desc, Icon }) => (
+              <label key={value} className="cursor-pointer">
                 <input type="radio" value={value} {...register('visibility')} className="sr-only" />
-                <div className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl border text-sm transition-all ${
+                <div className={`flex flex-col items-center justify-center gap-0.5 p-2 rounded-xl border text-center transition-all ${
                   currentVisibility === value
-                    ? 'border-amber-400 bg-amber-50 text-amber-700 font-medium'
+                    ? 'border-amber-400 bg-amber-50 text-amber-800 font-medium shadow-xs'
                     : 'border-stone-200 text-stone-500 hover:border-stone-300'
                 }`}>
-                  <Icon size={13} />
-                  {label}
+                  <div className="flex items-center gap-1 text-xs font-semibold">
+                    <Icon size={12} />
+                    {label}
+                  </div>
+                  <span className="text-[10px] text-stone-400 leading-none">{desc}</span>
                 </div>
               </label>
             ))}
@@ -129,7 +135,7 @@ export function WishlistForm({ open, onClose, editing }: WishlistFormProps) {
             Cancel
           </Button>
           <Button type="submit" className="flex-1" loading={isPending}>
-            {isEdit ? 'Save changes' : 'Create wishlist'}
+            {isEdit ? 'Save changes' : 'Create collection'}
           </Button>
         </div>
       </form>

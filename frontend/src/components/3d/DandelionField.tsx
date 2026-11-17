@@ -142,22 +142,23 @@ export function DandelionField({
 
     let width = canvas.parentElement?.clientWidth || window.innerWidth;
     let height = canvas.parentElement?.clientHeight || window.innerHeight;
+    const isMobile = width < 768;
 
     // 1. Scene & Camera
     const scene = new THREE.Scene();
 
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
-    camera.position.set(0, 0, 15);
+    camera.position.set(0, 0, isMobile ? 24 : 15);
 
     // 2. WebGL Renderer directly attached to the canvas
     const renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
-      antialias: true,
+      antialias: !isMobile, // optimize mobile performance
       powerPreference: 'high-performance',
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
 
     // 3. Lighting setup
     const ambientLight = new THREE.AmbientLight(0xfff7ed, 1.8);
@@ -172,24 +173,37 @@ export function DandelionField({
     scene.add(fillLight);
 
     // 4. 3D Volume Bounds
-    const xRange = 18;
-    const yRange = 14;
-    const zRange = 10;
+    const xRange = isMobile ? 12 : 18;
+    const yRange = isMobile ? 18 : 14;
+    const zRange = isMobile ? 8 : 10;
 
     // 5. Build Dandelion Seeds
+    const effectiveSeedCount = isMobile ? Math.min(seedCount, 24) : seedCount;
+    const effectiveDustCount = isMobile ? Math.min(dustCount, 50) : dustCount;
+
     const seeds: SeedPhysics[] = [];
     const seedGroup = new THREE.Group();
     scene.add(seedGroup);
 
-    for (let i = 0; i < seedCount; i++) {
+    for (let i = 0; i < effectiveSeedCount; i++) {
       const seedMesh = createSeedGeometry();
 
-      const px = (Math.random() - 0.5) * xRange * 1.5;
+      // On mobile, position seeds mostly towards outer flanks or upper/lower regions
+      let px: number;
+      if (isMobile) {
+        const side = Math.random() > 0.5 ? 1 : -1;
+        px = side * (1.8 + Math.random() * ((xRange * 1.4) / 2 - 1.8));
+      } else {
+        px = (Math.random() - 0.5) * xRange * 1.5;
+      }
       const py = (Math.random() - 0.5) * yRange * 1.5;
       const pz = (Math.random() - 0.5) * zRange;
       seedMesh.position.set(px, py, pz);
 
-      const scale = 0.65 + Math.random() * 0.7; // Generous size so clearly visible
+      // On mobile, scale seeds down to ~35-40% of desktop size to prevent dominating the view
+      const scale = isMobile
+        ? 0.22 + Math.random() * 0.18
+        : 0.65 + Math.random() * 0.7;
       seedMesh.scale.set(scale, scale, scale);
 
       seedMesh.rotation.x = (Math.random() - 0.5) * 0.6;
@@ -201,8 +215,8 @@ export function DandelionField({
       seeds.push({
         group: seedMesh,
         velocity: new THREE.Vector3(
-          0.009 + Math.random() * 0.015,
-          0.014 + Math.random() * 0.018,
+          0.007 + Math.random() * 0.012,
+          0.012 + Math.random() * 0.016,
           (Math.random() - 0.5) * 0.008
         ),
         scatterVel: new THREE.Vector3(0, 0, 0),
@@ -212,7 +226,7 @@ export function DandelionField({
           (Math.random() - 0.5) * 0.01
         ),
         wobbleSpeed: 0.8 + Math.random() * 1.4,
-        wobbleAmp: 0.012 + Math.random() * 0.018,
+        wobbleAmp: (isMobile ? 0.008 : 0.012) + Math.random() * 0.014,
         phase: Math.random() * Math.PI * 2,
         mass: 0.8 + Math.random() * 0.5,
       });
@@ -220,9 +234,9 @@ export function DandelionField({
 
     // 6. Golden Dream Dust Particles
     const dustGeo = new THREE.BufferGeometry();
-    const dustPositions = new Float32Array(dustCount * 3);
+    const dustPositions = new Float32Array(effectiveDustCount * 3);
 
-    for (let i = 0; i < dustCount; i++) {
+    for (let i = 0; i < effectiveDustCount; i++) {
       dustPositions[i * 3] = (Math.random() - 0.5) * xRange * 1.6;
       dustPositions[i * 3 + 1] = (Math.random() - 0.5) * yRange * 1.6;
       dustPositions[i * 3 + 2] = (Math.random() - 0.5) * zRange * 1.2;
@@ -231,7 +245,7 @@ export function DandelionField({
 
     const glowTexture = createGlowTexture();
     const dustMat = new THREE.PointsMaterial({
-      size: 0.55,
+      size: isMobile ? 0.35 : 0.55,
       map: glowTexture,
       transparent: true,
       opacity: 0.85,
@@ -263,12 +277,31 @@ export function DandelionField({
       mouseTarget.y = -(clientY / height) * 2 + 1;
     };
 
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 0) return;
+      const touch = e.touches[0];
+      const parentRect = canvas.parentElement?.getBoundingClientRect() || {
+        left: 0,
+        top: 0,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+
+      const clientX = touch.clientX - parentRect.left;
+      const clientY = touch.clientY - parentRect.top;
+
+      mouseTarget.x = (clientX / width) * 2 - 1;
+      mouseTarget.y = -(clientY / height) * 2 + 1;
+    };
+
     const handlePointerLeave = () => {
       mouseTarget.set(-9999, -9999);
     };
 
     window.addEventListener('mousemove', handlePointerMove, { passive: true });
     window.addEventListener('mouseleave', handlePointerLeave);
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handlePointerLeave);
 
     // 8. Responsive Resize
     const handleResize = () => {
@@ -276,11 +309,13 @@ export function DandelionField({
       width = canvas.parentElement.clientWidth || window.innerWidth;
       height = canvas.parentElement.clientHeight || window.innerHeight;
 
+      const currentIsMobile = width < 768;
       camera.aspect = width / height;
+      camera.position.z = currentIsMobile ? 24 : 15;
       camera.updateProjectionMatrix();
 
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, currentIsMobile ? 1.5 : 2));
     };
     window.addEventListener('resize', handleResize);
 
@@ -356,7 +391,12 @@ export function DandelionField({
         // Loop boundaries
         if (g.position.y > halfY + 1.8) {
           g.position.y = -halfY - 1.8;
-          g.position.x = (Math.random() - 0.5) * xRange * 1.4;
+          if (isMobile) {
+            const side = Math.random() > 0.5 ? 1 : -1;
+            g.position.x = side * (1.8 + Math.random() * (halfX - 1.8));
+          } else {
+            g.position.x = (Math.random() - 0.5) * xRange * 1.4;
+          }
         }
         if (g.position.x > halfX + 1.8) {
           g.position.x = -halfX - 1.8;
@@ -367,7 +407,7 @@ export function DandelionField({
 
       // Animate Golden Dust
       const posArray = dustGeo.attributes.position.array as Float32Array;
-      for (let i = 0; i < dustCount; i++) {
+      for (let i = 0; i < effectiveDustCount; i++) {
         posArray[i * 3 + 1] += 0.006;
         posArray[i * 3] += Math.sin(elapsed * 0.6 + i) * 0.003;
 
@@ -379,8 +419,8 @@ export function DandelionField({
 
       // Parallax camera tilt
       if (mouse.x > -100) {
-        camera.position.x += (mouse.x * 1.2 - camera.position.x) * 0.04;
-        camera.position.y += (mouse.y * 0.8 - camera.position.y) * 0.04;
+        camera.position.x += (mouse.x * (isMobile ? 0.4 : 1.2) - camera.position.x) * 0.04;
+        camera.position.y += (mouse.y * (isMobile ? 0.3 : 0.8) - camera.position.y) * 0.04;
         camera.lookAt(0, 0, 0);
       }
 
@@ -394,6 +434,8 @@ export function DandelionField({
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('mouseleave', handlePointerLeave);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handlePointerLeave);
       renderer.dispose();
       glowTexture.dispose();
       dustGeo.dispose();

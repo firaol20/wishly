@@ -6,6 +6,22 @@ import { z } from 'zod';
 const updateProfileSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   bio: z.string().max(500).optional(),
+  telegramUsername: z
+    .string()
+    .max(64)
+    .optional()
+    .nullable()
+    .transform(val => {
+      if (!val) return null;
+      const cleaned = val.trim().replace(/^@/, '').replace(/^https?:\/\/t\.me\//i, '').replace(/\/$/, '').trim();
+      return cleaned || null;
+    })
+    .refine(val => {
+      if (!val) return true;
+      return /^[a-zA-Z0-9_]{5,32}$/.test(val);
+    }, {
+      message: 'Telegram username must be 5-32 characters and contain only letters, numbers, and underscores',
+    }),
 });
 
 export async function userRoutes(app: FastifyInstance) {
@@ -18,6 +34,7 @@ export async function userRoutes(app: FastifyInstance) {
       name: user.name,
       avatarUrl: user.avatarUrl,
       bio: user.bio,
+      telegramUsername: user.telegramUsername,
       createdAt: user.createdAt,
     });
   });
@@ -42,6 +59,7 @@ export async function userRoutes(app: FastifyInstance) {
       name: updated.name,
       avatarUrl: updated.avatarUrl,
       bio: updated.bio,
+      telegramUsername: updated.telegramUsername,
     });
   });
 

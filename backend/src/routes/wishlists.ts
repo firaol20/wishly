@@ -8,7 +8,7 @@ const createWishlistSchema = z.object({
   title: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
   coverImageUrl: z.string().url().optional().or(z.literal('')),
-  visibility: z.enum(['PRIVATE', 'LINK']).optional(),
+  visibility: z.enum(['PRIVATE', 'LINK', 'PUBLIC']).optional(),
 });
 
 const updateWishlistSchema = createWishlistSchema.partial();
@@ -18,6 +18,81 @@ const reorderSchema = z.object({
 });
 
 export async function wishlistRoutes(app: FastifyInstance) {
+  // Public dreams discovery feed (anyone can discover public dreams)
+  app.get('/public', async (request, reply) => {
+    const { search, limit = '30', page = '1' } = request.query as Record<string, string>;
+    const take = Math.min(parseInt(limit, 10) || 30, 50);
+    const skip = ((parseInt(page, 10) || 1) - 1) * take;
+
+    const where: any = {
+      visibility: 'PUBLIC',
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+          {
+            items: {
+              some: {
+                title: { contains: search, mode: 'insensitive' },
+              },
+            },
+          },
+        ],
+      }),
+    };
+
+    const [total, wishlists] = await Promise.all([
+      prisma.wishlist.count({ where }),
+      prisma.wishlist.findMany({
+        where,
+        include: {
+          _count: { select: { items: true } },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              telegramUsername: true,
+            },
+          },
+          items: {
+            take: 6,
+            orderBy: { sortOrder: 'asc' },
+            select: {
+              id: true,
+              title: true,
+              category: true,
+              status: true,
+              imageUrl: true,
+              whyIWantThis: true,
+            },
+          },
+        },
+        orderBy: { updatedAt: 'desc' },
+        take,
+        skip,
+      }),
+    ]);
+
+    return reply.send({ total, wishlists, page: parseInt(page, 10) || 1, limit: take });
+  });
+
+  // Get specific public wishlist (no auth required)
+  app.get('/public/:id', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const wishlist = await prisma.wishlist.findFirst({
+      where: { id, visibility: 'PUBLIC' },
+      include: {
+        items: { orderBy: { sortOrder: 'asc' } },
+        user: { select: { id: true, name: true, avatarUrl: true, telegramUsername: true } },
+        _count: { select: { items: true } },
+      },
+    });
+
+    if (!wishlist) return reply.status(404).send({ error: 'Public wishlist not found' });
+    return reply.send(wishlist);
+  });
+
   // List user's wishlists
   app.get('/', { preHandler: [authenticate] }, async (request, reply) => {
     const user = (request as any).user;
@@ -132,7 +207,7 @@ export async function wishlistRoutes(app: FastifyInstance) {
       where: { shareToken: token, visibility: 'LINK' },
       include: {
         items: { orderBy: { sortOrder: 'asc' } },
-        user: { select: { name: true, avatarUrl: true } },
+        user: { select: { name: true, avatarUrl: true, telegramUsername: true } },
       },
     });
 

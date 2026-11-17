@@ -1,7 +1,7 @@
 export type Category = 'TRAVEL' | 'HEALTH' | 'CAREER' | 'FAMILY' | 'EDUCATION' | 'FUN' | 'OTHER';
 export type Status = 'DREAM' | 'IN_PROGRESS' | 'LIVED_IT';
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
-export type Visibility = 'PRIVATE' | 'LINK';
+export type Visibility = 'PRIVATE' | 'LINK' | 'PUBLIC';
 
 export interface User {
   id: string;
@@ -9,6 +9,7 @@ export interface User {
   name: string;
   avatarUrl?: string;
   bio?: string;
+  telegramUsername?: string;
   createdAt: string;
 }
 
@@ -24,6 +25,8 @@ export interface Wishlist {
   createdAt: string;
   updatedAt: string;
   _count?: { items: number };
+  user?: Pick<User, 'id' | 'name' | 'avatarUrl' | 'telegramUsername'>;
+  items?: WishItem[];
 }
 
 export interface WishItem {
@@ -59,4 +62,12 @@ export interface Stats {
 export interface AiSuggestion {
   category: Category;
   tags: string[];
+}
+
+export interface PublicDreamItem extends WishItem {
+  wishlist?: {
+    id: string;
+    title: string;
+    user?: Pick<User, 'id' | 'name' | 'avatarUrl' | 'telegramUsername'>;
+  };
 }

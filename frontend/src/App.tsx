@@ -10,6 +10,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Wishlists } from './pages/Wishlists';
 import { WishlistDetail } from './pages/WishlistDetail';
 import { WishDetail } from './pages/WishDetail';
+import { DiscoverDreams } from './pages/DiscoverDreams';
 import { Profile } from './pages/Profile';
 import { SharedWishlist } from './pages/SharedWishlist';
 import { useAuth } from './hooks/useAuth';
@@ -56,6 +57,7 @@ function AppRoutes() {
       }>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/wishlists" element={<Wishlists />} />
+        <Route path="/discover" element={<DiscoverDreams />} />
         <Route path="/wishlists/:id" element={<WishlistDetail />} />
         <Route path="/wishes/:id" element={<WishDetail />} />
         <Route path="/profile" element={<Profile />} />

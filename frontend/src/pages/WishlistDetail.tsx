@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Search, Share2, Check, ArrowLeft,
-  Download, Loader2, MessageSquareDashed,
+  Download, Loader2, MessageSquareDashed, Sparkles, Globe,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { wishlistsApi, itemsApi, API_ORIGIN } from '../services/api';
@@ -94,8 +94,8 @@ export function WishlistDetail() {
     <div className="flex flex-col gap-6">
       {/* Back + Header */}
       <div className="flex flex-col gap-3">
-        <Link to="/wishlists" className="flex items-center gap-1.5 text-sm text-stone-400 hover:text-stone-600 w-fit">
-          <ArrowLeft size={14} /> All wishlists
+        <Link to="/wishlists" className="flex items-center gap-1.5 text-sm text-stone-400 hover:text-stone-700 w-fit transition-colors">
+          <ArrowLeft size={14} /> I wish
         </Link>
 
         <div className="flex items-start justify-between gap-4">
@@ -107,7 +107,26 @@ export function WishlistDetail() {
             )}
             <h1 className="font-display text-3xl text-stone-800">{wishlist.title}</h1>
             {wishlist.description && <p className="text-stone-500 mt-1 text-sm">{wishlist.description}</p>}
-            <p className="text-xs text-stone-400 mt-1.5">{wishes.length} wishes</p>
+            
+            <div className="flex items-center gap-2 mt-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200 shadow-xs">
+                <Sparkles size={13} className="text-amber-600" />
+                {wishes.length} {wishes.length === 1 ? 'dream' : 'dreams'}
+              </span>
+              {wishlist.visibility === 'PUBLIC' ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <Globe size={11} /> Public (Discoverable)
+                </span>
+              ) : wishlist.visibility === 'LINK' ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                  Shared via link
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 text-stone-600 border border-stone-200">
+                  Private
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
@@ -120,7 +139,7 @@ export function WishlistDetail() {
               PDF
             </Button>
             <Button size="sm" onClick={() => { setEditingWish(null); setWishFormOpen(true); }}>
-              <Plus size={14} /> Add wish
+              <Plus size={14} /> Add dream
             </Button>
           </div>
         </div>

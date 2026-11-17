@@ -16,6 +16,20 @@ import { Button } from '../components/ui/Button';
 const schema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   bio: z.string().max(500).optional(),
+  telegramUsername: z
+    .string()
+    .max(64)
+    .optional()
+    .refine(
+      val => {
+        if (!val || !val.trim()) return true;
+        const clean = val.trim().replace(/^@/, '').replace(/^https?:\/\/t\.me\//i, '').replace(/\/$/, '').trim();
+        return /^[a-zA-Z0-9_]{5,32}$/.test(clean);
+      },
+      {
+        message: 'Telegram username must be 5-32 characters (letters, numbers, underscores)',
+      }
+    ),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -29,15 +43,35 @@ export function Profile() {
 
   const { register, handleSubmit, reset, formState: { errors, isDirty } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { name: user?.name || '', bio: user?.bio || '' },
+    defaultValues: {
+      name: user?.name || '',
+      bio: user?.bio || '',
+      telegramUsername: user?.telegramUsername || '',
+    },
   });
 
   useEffect(() => {
-    if (user) reset({ name: user.name, bio: user.bio || '' });
+    if (user) {
+      reset({
+        name: user.name,
+        bio: user.bio || '',
+        telegramUsername: user.telegramUsername || '',
+      });
+    }
   }, [user, reset]);
 
   const updateMutation = useMutation({
-    mutationFn: (data: FormData) => usersApi.updateMe(data),
+    mutationFn: (data: FormData) => {
+      const cleanTelegram = data.telegramUsername
+        ? data.telegramUsername.trim().replace(/^@/, '').replace(/^https?:\/\/t\.me\//i, '').replace(/\/$/, '').trim()
+        : null;
+
+      return usersApi.updateMe({
+        name: data.name,
+        bio: data.bio,
+        telegramUsername: cleanTelegram || null,
+      });
+    },
     onSuccess: ({ data }) => {
       setUser(data);
       toast.success('Profile updated ✨');
@@ -103,6 +137,15 @@ export function Profile() {
         <form onSubmit={handleSubmit(d => updateMutation.mutate(d))} className="flex flex-col gap-4">
           <Input label="Display Name" error={errors.name?.message} {...register('name')} />
           <Textarea label="Bio (optional)" placeholder="A dreamer who loves adventures..." rows={3} {...register('bio')} />
+          <div>
+            <Input
+              label="Telegram Username (optional)"
+              placeholder="e.g. johndoe"
+              error={errors.telegramUsername?.message}
+              hint="Allow people who discover your public dreams to connect with you on Telegram to help make them happen. Never shown on private dreams."
+              {...register('telegramUsername')}
+            />
+          </div>
           <Button type="submit" loading={updateMutation.isPending} disabled={!isDirty}>
             Save changes
           </Button>

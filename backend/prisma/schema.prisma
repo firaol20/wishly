@@ -14,6 +14,7 @@ model User {
   name          String
   avatarUrl     String?
   bio           String?
+  telegramUsername String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -72,6 +73,7 @@ model PushSubscription {
 enum Visibility {
   PRIVATE
   LINK
+  PUBLIC
 }
 
 enum Category {

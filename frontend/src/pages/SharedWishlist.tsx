@@ -1,16 +1,17 @@
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Lock, Loader2, Heart } from 'lucide-react';
+import { Lock, Loader2, Heart, Sparkles } from 'lucide-react';
 import { wishlistsApi } from '../services/api';
 import type { WishItem, Wishlist } from '../types';
 import { Badge } from '../components/ui/Badge';
+import { TelegramButton } from '../components/ui/TelegramButton';
 import { CATEGORY_LABELS, CATEGORY_COLORS, STATUS_LABELS, STATUS_COLORS } from '../utils/categoryColors';
 import { WishlyIcon } from '../components/ui/WishlyLogo';
 
-interface SharedData extends Wishlist {
+interface SharedData extends Omit<Wishlist, 'user'> {
   items: WishItem[];
-  user: { name: string; avatarUrl?: string };
+  user: { id?: string; name: string; avatarUrl?: string; telegramUsername?: string };
 }
 
 function WishlyWordmark() {
@@ -64,15 +65,29 @@ export function SharedWishlist() {
               <img src={data.coverImageUrl} alt={data.title} className="w-full h-full object-cover" />
             </div>
           )}
-          <div className="flex items-center gap-3 mb-2">
-            {data.user?.avatarUrl && (
-              <img src={data.user.avatarUrl} alt={data.user.name} className="w-8 h-8 rounded-full" />
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+            <div className="flex items-center gap-3">
+              {data.user?.avatarUrl && (
+                <img src={data.user.avatarUrl} alt={data.user.name} className="w-8 h-8 rounded-full border border-amber-200 object-cover" />
+              )}
+              <p className="text-sm font-medium text-stone-600">{data.user?.name}&apos;s dream collection</p>
+            </div>
+            {data.user?.telegramUsername && (
+              <TelegramButton
+                username={data.user.telegramUsername}
+                label="Help with this dream"
+                size="sm"
+              />
             )}
-            <p className="text-sm text-stone-500">{data.user?.name}&apos;s wishlist</p>
           </div>
           <h1 className="font-display text-4xl text-stone-800">{data.title}</h1>
           {data.description && <p className="text-stone-500 mt-2">{data.description}</p>}
-          <p className="text-xs text-stone-400 mt-2">{data.items.length} wishes</p>
+          <div className="flex items-center gap-2 mt-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+              <Sparkles size={12} className="text-amber-600" />
+              {data.items.length} {data.items.length === 1 ? 'dream' : 'dreams'}
+            </span>
+          </div>
         </motion.div>
 
         {/* Wishes */}
