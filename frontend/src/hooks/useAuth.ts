@@ -2,10 +2,15 @@ import { useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { usersApi, authApi, API_ORIGIN } from '../services/api';
 
+let hasInitialized = false;
+
 export function useAuth() {
   const { user, isAuthenticated, isLoading, setUser, setAccessToken, logout } = useAuthStore();
 
   useEffect(() => {
+    if (hasInitialized) return;
+    hasInitialized = true;
+
     // Try to refresh token on mount to restore session
     const init = async () => {
       try {
