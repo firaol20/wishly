@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import {
   BookOpen,
   MessageCircleQuestion,
@@ -53,7 +55,18 @@ const features = [
 ];
 
 export function Landing() {
+  const [params] = useSearchParams();
   const { isAuthenticated, isLoading, signInWithGoogle } = useAuth();
+
+  useEffect(() => {
+    const error = params.get('error');
+    const msg = params.get('msg');
+    const reason = params.get('reason');
+    if (error) {
+      const details = msg || reason || error;
+      toast.error(`Sign in failed: ${decodeURIComponent(details).replace(/_/g, ' ')}`, { id: 'auth-error' });
+    }
+  }, [params]);
 
   if (!isLoading && isAuthenticated) {
     return <Navigate to="/dashboard" replace />;

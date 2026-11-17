@@ -38,10 +38,12 @@ export async function authRoutes(app: FastifyInstance) {
         }),
       });
 
-      const tokenData = await tokenResponse.json() as any;
+      const tokenData = (await tokenResponse.json()) as any;
 
       if (!tokenData.access_token) {
-        return reply.redirect(`${frontendUrl}?error=token_exchange_failed`);
+        console.error('Google token exchange failed:', tokenData);
+        const reason = encodeURIComponent(tokenData.error_description || tokenData.error || 'token_exchange_failed');
+        return reply.redirect(`${frontendUrl}?error=token_exchange_failed&reason=${reason}`);
       }
 
       // Get user info from Google
@@ -49,21 +51,30 @@ export async function authRoutes(app: FastifyInstance) {
         headers: { Authorization: `Bearer ${tokenData.access_token}` },
       });
 
-      const googleUser = await userInfoResponse.json() as any;
+      const googleUser = (await userInfoResponse.json()) as any;
+      const googleId = String(googleUser.id || googleUser.sub || '');
+      const email = googleUser.email;
+      const name = googleUser.name || email?.split('@')[0] || 'Dreamer';
+      const avatarUrl = googleUser.picture || null;
 
-      // Upsert user in database
+      if (!googleId || !email) {
+        console.error('Invalid Google user data received:', googleUser);
+        return reply.redirect(`${frontendUrl}?error=invalid_user_data`);
+      }
+
+      // Upsert user in database safely by email
       const user = await prisma.user.upsert({
-        where: { googleId: googleUser.id },
+        where: { email },
         update: {
-          email: googleUser.email,
-          name: googleUser.name,
-          avatarUrl: googleUser.picture,
+          googleId,
+          name,
+          avatarUrl,
         },
         create: {
-          googleId: googleUser.id,
-          email: googleUser.email,
-          name: googleUser.name,
-          avatarUrl: googleUser.picture,
+          googleId,
+          email,
+          name,
+          avatarUrl,
         },
       });
 
@@ -82,9 +93,10 @@ export async function authRoutes(app: FastifyInstance) {
 
       // Redirect to frontend with access token
       return reply.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('OAuth callback error:', error);
-      return reply.redirect(`${frontendUrl}?error=server_error`);
+      const msg = encodeURIComponent(error?.message || 'unknown_error');
+      return reply.redirect(`${frontendUrl}?error=server_error&msg=${msg}`);
     }
   });
 

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Loader2, MoonStar } from 'lucide-react';
+import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import { AppLayout } from './components/layout/AppLayout';
 import { Landing } from './pages/Landing';
@@ -77,6 +78,19 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AppRoutes />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: '#FFFBF0',
+              border: '1px solid #E7E5E4',
+              color: '#292524',
+              fontFamily: 'Lato, sans-serif',
+              borderRadius: '12px',
+            },
+            success: { iconTheme: { primary: '#F59E0B', secondary: '#FFFBF0' } },
+          }}
+        />
       </BrowserRouter>
     </QueryClientProvider>
   );
