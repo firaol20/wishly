@@ -111,6 +111,21 @@ Open http://localhost:5173
 - ✅ GDPR — data export + full account deletion
 - ✅ WCAG 2.1 AA accessible
 - ✅ Mobile-first responsive design
+- ✅ Public dream discovery & exploration
+- ✅ Telegram contact integration for dream collaboration
+- ✅ Automatic invisible collections (flat "I wish" feed)
+
+---
+
+## 🔮 Version 2.0 & Future Roadmap
+
+Curious about what's coming next? See [ROADMAP.md](ROADMAP.md) for planned enhancements including:
+- **Community Cheers & "I Can Help" Reactions**
+- **Dream Matchmaker (AI semantic goal pairing)**
+- **Dream Milestones (Stepping stones from wish to reality)**
+- **Interactive 3D Dandelion Wish-Releasing Animation**
+- **Annual Dream Capsule ("Wishly Wrapped")**
+- **Sanctuary Ambient Audio & Soundscapes**
 
 ---
 
