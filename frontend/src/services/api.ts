@@ -111,6 +111,10 @@ export const itemsApi = {
   addMemory: (id: string, data: { memoryNote: string; memoryImageUrl?: string }) =>
     api.post(`/items/${id}/memory`, data),
   reorder: (items: { id: string; sortOrder: number }[]) => api.patch('/items/reorder', { items }),
+  mine: (params?: { status?: string; category?: string; search?: string }) =>
+    api.get('/items/mine', { params }),
+  toggleVisibility: (id: string, isPublic: boolean) =>
+    api.patch(`/items/${id}/visibility`, { isPublic }),
   getPublicDreams: (params?: { category?: string; search?: string; page?: number; limit?: number }) =>
     api.get('/items/public/dreams', { params }),
 };

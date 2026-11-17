@@ -43,6 +43,7 @@ export interface WishItem {
   memoryNote?: string;
   memoryImageUrl?: string;
   sortOrder: number;
+  isPublic: boolean;
   completedAt?: string;
   createdAt: string;
   updatedAt: string;

@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   TrendingUp,
-  Sparkles,
   Calendar,
   CloudSun,
   Star,
@@ -104,7 +103,7 @@ export function Dashboard() {
         <div>
           <p className="text-4xl font-display font-bold text-stone-800">{data.livedItThisYear}</p>
           <div className="flex items-center gap-1.5 mt-1">
-            <Sparkles size={15} className="text-amber-400" />
+            <CheckCircle2 size={15} className="text-amber-500" />
             <p className="text-stone-500">
               dream{data.livedItThisYear !== 1 ? 's' : ''} lived this year
             </p>
@@ -213,7 +212,7 @@ export function Dashboard() {
                       })}
                     </p>
                   </div>
-                  <Sparkles size={12} className="text-green-400 flex-shrink-0" />
+                  <CheckCircle2 size={12} className="text-green-500 flex-shrink-0" />
                 </Link>
               ))}
             </div>

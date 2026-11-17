@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import {
   Calendar, MoreVertical, Pencil, Trash2,
   PlayCircle, CheckCircle2, RotateCcw, Heart,
+  Globe, Lock,
 } from 'lucide-react';
 import { useState } from 'react';
 import type { WishItem } from '../../types';
@@ -20,6 +21,7 @@ interface WishCardProps {
   onEdit: (wish: WishItem) => void;
   onDelete: (id: string) => void;
   onStatusChange: (id: string, status: string) => void;
+  onToggleVisibility?: (id: string, isPublic: boolean) => void;
 }
 
 const STATUS_NEXT_ICON = {
@@ -28,7 +30,7 @@ const STATUS_NEXT_ICON = {
   LIVED_IT:    { Icon: RotateCcw,    label: 'Reset',     cls: 'text-stone-500' },
 };
 
-export function WishCard({ wish, index, onEdit, onDelete, onStatusChange }: WishCardProps) {
+export function WishCard({ wish, index, onEdit, onDelete, onStatusChange, onToggleVisibility }: WishCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const nextStatus = getNextStatus(wish.status);
   const nextAction = STATUS_NEXT_ICON[wish.status];
@@ -128,6 +130,23 @@ export function WishCard({ wish, index, onEdit, onDelete, onStatusChange }: Wish
             <Heart size={11} className="mt-0.5 flex-shrink-0 text-green-400 fill-green-300" />
             <span>&quot;{wish.memoryNote}&quot;</span>
           </div>
+        )}
+
+        {/* Visibility toggle */}
+        {onToggleVisibility && (
+          <button
+            onClick={() => onToggleVisibility(wish.id, !wish.isPublic)}
+            title={wish.isPublic ? 'Public — visible in Discover' : 'Private — only you can see this'}
+            className={cn(
+              'flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition-all self-start',
+              wish.isPublic
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                : 'bg-stone-50 text-stone-500 border-stone-200 hover:bg-stone-100'
+            )}
+          >
+            {wish.isPublic ? <Globe size={11} /> : <Lock size={11} />}
+            {wish.isPublic ? 'Public' : 'Private'}
+          </button>
         )}
 
         {/* Status action button */}

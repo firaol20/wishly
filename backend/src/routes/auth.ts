@@ -78,6 +78,19 @@ export async function authRoutes(app: FastifyInstance) {
         },
       });
 
+      // Auto-create a default "My Wishes" collection for new users (invisible to UI)
+      const existingWishlists = await prisma.wishlist.count({ where: { userId: user.id } });
+      if (existingWishlists === 0) {
+        await prisma.wishlist.create({
+          data: {
+            userId: user.id,
+            title: 'My Wishes',
+            sortOrder: 0,
+            visibility: 'PRIVATE',
+          },
+        });
+      }
+
       // Issue JWT tokens
       const accessToken = signAccessToken({ userId: user.id, email: user.email });
       const refreshToken = signRefreshToken({ userId: user.id, email: user.email });

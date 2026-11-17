@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Lock, Loader2, Heart, Sparkles } from 'lucide-react';
+import { Lock, Loader2, Heart, Star } from 'lucide-react';
 import { wishlistsApi } from '../services/api';
 import type { WishItem, Wishlist } from '../types';
 import { Badge } from '../components/ui/Badge';
@@ -84,7 +84,7 @@ export function SharedWishlist() {
           {data.description && <p className="text-stone-500 mt-2">{data.description}</p>}
           <div className="flex items-center gap-2 mt-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-              <Sparkles size={12} className="text-amber-600" />
+              <Star size={12} className="text-amber-600 fill-amber-400" />
               {data.items.length} {data.items.length === 1 ? 'dream' : 'dreams'}
             </span>
           </div>

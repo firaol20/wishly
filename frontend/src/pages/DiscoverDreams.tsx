@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Compass, Sparkles, Heart, Loader2 } from 'lucide-react';
+import { Search, Compass, Star, Globe, Heart, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { itemsApi } from '../services/api';
 import type { PublicDreamItem, Category } from '../types';
@@ -53,7 +53,7 @@ export function DiscoverDreams() {
           </p>
           <div className="flex items-center gap-2 mt-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200 shadow-xs">
-              <Sparkles size={13} className="text-amber-600" />
+              <Star size={13} className="text-amber-600 fill-amber-400" />
               {totalCount} {totalCount === 1 ? 'public dream' : 'public dreams'}
             </span>
             <span className="text-xs text-stone-400">Discoverable community</span>
@@ -62,7 +62,7 @@ export function DiscoverDreams() {
 
         <Link to="/wishlists">
           <Button variant="secondary" size="sm">
-            <Sparkles size={14} />
+            <Globe size={14} />
             Share a wish
           </Button>
         </Link>
@@ -133,7 +133,7 @@ export function DiscoverDreams() {
           </div>
           <Link to="/wishlists">
             <Button size="sm">
-              <Sparkles size={14} />
+              <Globe size={14} />
               Make a dream public
             </Button>
           </Link>

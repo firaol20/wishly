@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Sparkles, Compass, User, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Star, Compass, User, LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
@@ -8,7 +8,7 @@ import { WishlyIcon } from '../ui/WishlyLogo';
 
 const navLinks = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/wishlists', label: 'I wish', icon: Sparkles },
+  { to: '/wishlists', label: 'I wish', icon: Star },
   { to: '/discover', label: 'Discover', icon: Compass },
   { to: '/profile', label: 'Profile', icon: User },
 ];

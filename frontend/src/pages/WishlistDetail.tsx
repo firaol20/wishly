@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Search, Share2, Check, ArrowLeft,
-  Download, Loader2, MessageSquareDashed, Sparkles, Globe,
+  Download, Loader2, MessageSquareDashed, Star, Globe,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { wishlistsApi, itemsApi, API_ORIGIN } from '../services/api';
@@ -110,7 +110,7 @@ export function WishlistDetail() {
             
             <div className="flex items-center gap-2 mt-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200 shadow-xs">
-                <Sparkles size={13} className="text-amber-600" />
+                <Star size={13} className="text-amber-600 fill-amber-400" />
                 {wishes.length} {wishes.length === 1 ? 'dream' : 'dreams'}
               </span>
               {wishlist.visibility === 'PUBLIC' ? (

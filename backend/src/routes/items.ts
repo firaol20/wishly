@@ -11,6 +11,7 @@ const createItemSchema = z.object({
   tags: z.array(z.string()).max(10).optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
   targetDate: z.string().datetime().optional().nullable(),
+  isPublic: z.boolean().optional(),
 });
 
 const updateItemSchema = createItemSchema.partial();
@@ -34,14 +35,14 @@ async function verifyWishlistOwnership(wishlistId: string, userId: string) {
 }
 
 export async function itemRoutes(app: FastifyInstance) {
-  // Public dreams stream across all public wishlists (no auth required)
+  // Public dreams stream — items with isPublic=true (no auth required)
   app.get('/public/dreams', async (request, reply) => {
     const { category, search, limit = '40', page = '1' } = request.query as Record<string, string>;
     const take = Math.min(parseInt(limit, 10) || 40, 60);
     const skip = ((parseInt(page, 10) || 1) - 1) * take;
 
     const where: any = {
-      wishlist: { visibility: 'PUBLIC' },
+      isPublic: true,
       ...(category && { category: category as any }),
       ...(search && {
         OR: [
@@ -79,6 +80,53 @@ export async function itemRoutes(app: FastifyInstance) {
     ]);
 
     return reply.send({ total, items, page: parseInt(page, 10) || 1, limit: take });
+  });
+
+  // Toggle individual wish visibility (public/private)
+  app.patch('/items/:id/visibility', { preHandler: [authenticate] }, async (request, reply) => {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const { isPublic } = request.body as { isPublic: boolean };
+
+    const item = await prisma.wishItem.findUnique({
+      where: { id },
+      include: { wishlist: { select: { userId: true } } },
+    });
+
+    if (!item || item.wishlist.userId !== user.id) {
+      return reply.status(404).send({ error: 'Wish not found' });
+    }
+
+    const updated = await prisma.wishItem.update({
+      where: { id },
+      data: { isPublic: Boolean(isPublic) },
+    });
+
+    return reply.send(updated);
+  });
+
+  // Get ALL user wishes across all wishlists (flat feed for "I wish" page)
+  app.get('/items/mine', { preHandler: [authenticate] }, async (request, reply) => {
+    const user = (request as any).user;
+    const { status, category, search } = request.query as Record<string, string>;
+
+    const items = await prisma.wishItem.findMany({
+      where: {
+        wishlist: { userId: user.id },
+        ...(status && { status: status as any }),
+        ...(category && { category: category as any }),
+        ...(search && {
+          OR: [
+            { title: { contains: search, mode: 'insensitive' } },
+            { whyIWantThis: { contains: search, mode: 'insensitive' } },
+            { tags: { has: search.toLowerCase() } },
+          ],
+        }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return reply.send(items);
   });
 
   // List items in a wishlist (with filters)

@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Sparkles, X } from 'lucide-react';
+import { Wand2, X } from 'lucide-react';
 import { itemsApi, aiApi } from '../../services/api';
 import type { WishItem, Category } from '../../types';
 import { Input } from '../ui/Input';
@@ -31,9 +31,10 @@ interface WishFormProps {
   onClose: () => void;
   wishlistId: string;
   editing?: WishItem | null;
+  onSaved?: () => void;
 }
 
-export function WishForm({ open, onClose, wishlistId, editing }: WishFormProps) {
+export function WishForm({ open, onClose, wishlistId, editing, onSaved }: WishFormProps) {
   const qc = useQueryClient();
   const isEdit = !!editing;
   const [aiLoading, setAiLoading] = useState(false);
@@ -109,7 +110,9 @@ export function WishForm({ open, onClose, wishlistId, editing }: WishFormProps) 
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['wishes', wishlistId] });
-      toast.success('Wish added ✨');
+      qc.invalidateQueries({ queryKey: ['wishes-mine'] });
+      toast.success('Wish added!');
+      onSaved?.();
       onClose();
     },
     onError: () => toast.error('Failed to add wish'),
@@ -151,7 +154,7 @@ export function WishForm({ open, onClose, wishlistId, editing }: WishFormProps) 
           />
           {aiSuggestion && !isEdit && (
             <div className="mt-2 flex items-center gap-2 p-2.5 bg-amber-50 rounded-xl border border-amber-200">
-              <Sparkles size={14} className="text-amber-500 flex-shrink-0" />
+              <Wand2 size={14} className="text-amber-500 flex-shrink-0" />
               <div className="flex-1 text-xs text-stone-600">
                 <span className="font-medium">AI suggests:</span>{' '}
                 <span className="text-amber-700">{aiSuggestion.category}</span>
@@ -165,7 +168,7 @@ export function WishForm({ open, onClose, wishlistId, editing }: WishFormProps) 
           )}
           {aiLoading && !isEdit && (
             <div className="mt-1 flex items-center gap-1.5 text-xs text-stone-400">
-              <Sparkles size={12} className="animate-pulse text-amber-400" />
+              <Wand2 size={12} className="animate-pulse text-amber-400" />
               AI is thinking...
             </div>
           )}
